@@ -66,3 +66,17 @@ def test_login(setup_create_user):
     auth_token = response.json()["token"]
     assert auth_token
 
+def test_sql_injection_in_invoices(setup_create_user):
+    # Crear nuevo usuario
+    username = setup_create_user[0]
+    password = setup_create_user[1]
+
+    # Login 
+    login = requests.post("http://localhost:5000/auth/login", json={ "username": username, "password": password})
+    token = login.json().get("token")
+    assert token
+
+    # Intento una inyeccion SQL 
+    inyection = requests.get("http://localhost:5000/invoices", headers={"Authorization": f"Bearer {token}"}, params={"status": "unpaid' OR 1=1--"})
+    assert inyection.status_code != 500
+
