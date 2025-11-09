@@ -71,12 +71,13 @@ def test_sql_injection_in_invoices(setup_create_user):
     username = setup_create_user[0]
     password = setup_create_user[1]
 
-    # Login 
+    # Login con el usuario creado anteriormente para obtener el token
     login = requests.post("http://localhost:5000/auth/login", json={ "username": username, "password": password})
     token = login.json().get("token")
     assert token
 
-    # Intento una inyeccion SQL 
+    # Intentar una inyeccion SQL en el endpoint "/invoices" utilizando el parametro "status"
     inyection = requests.get("http://localhost:5000/invoices", headers={"Authorization": f"Bearer {token}"}, params={"status": "unpaid' OR 1=1--"})
-    assert inyection.status_code != 500
 
+    # Verificar que no se obtenga un error 500
+    assert inyection.status_code != 500
